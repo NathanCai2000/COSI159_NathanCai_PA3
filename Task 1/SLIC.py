@@ -42,16 +42,16 @@ def slic(image, K, m, iteration = 10):
             center = [j, i, image[i][j][0], image[i][j][1], image[i][j][2]]
             centers.append(center)
     centers = np.array(centers)
-
+    
     # Step 2: Assign pixels to clusters
     print('Assign pixels to clusters')
     labels = np.zeros((height, width), dtype=np.int64)
     distances = np.full((height, width), np.inf)
     for k in range(iteration):
+        print('Iteration: ', k+1)
         for i in range(height):
             for j in range(width):        
-                pb(j, width)
-                for c in range(len(centers)):
+                for c in range(K):
                     dc = np.sqrt((j-centers[c][0])**2 + (i-centers[c][1])**2)
                     ds = np.sqrt((image[i][j][0]-centers[c][2])**2 + (image[i][j][1]-centers[c][3])**2 + (image[i][j][2]-centers[c][4])**2)
                     d = np.sqrt(dc**2 + (ds/m)**2)
@@ -60,7 +60,7 @@ def slic(image, K, m, iteration = 10):
                         labels[i][j] = c
 
         # Step 3: Update cluster centers
-        print('Update cluster centers [%v]', k)
+        print('Update cluster centers')
         new_centers = np.zeros_like(centers)
         counts = np.zeros((K,))
         for i in range(height):
@@ -80,21 +80,26 @@ def slic(image, K, m, iteration = 10):
     # Step 4: Generate superpixels
     print('Generate superpixels')
     superpixels = np.zeros_like(image)
+    #print(centers[0:6])
+    tmp = 255/K
+    
     for i in range(height):
         for j in range(width):
-            superpixels[i][j] = centers[labels[i][j]][2:5]
-    return superpixels.astype(np.uint8)
+            superpixels[i][j] = centers[labels[i][j]][2:5] * 255        
+    
+    superpixels = Draw_dots(superpixels, centers[0:K], K, 3)
+    superpixels = superpixels.astype(np.uint8)
+    
+    return superpixels
 
-from joblib import Parallel, delayed
+def Draw_dots(image, points, k, radius):
+    height = image.shape[0]
+    width = image.shape[1]
+    for p in range(k):
+        for x in range(int(points[p][0]) - radius, int(points[p][0]) + radius):
+            for y in range(int(points[p][1]) - radius, int(points[p][1]) + radius):
+                if (x >= 0 and x < width-1) and (y >= 0 and y < height-1):
+                    image[y][x] = (1-points[p][2:5])*255
+    return image
 
-def slic_parallel(image, K, m, n_jobs=1, iteration=5):
-    # Divide the image into smaller sub-regions
-    sub_regions = Util.divide_image(image, n_jobs)
 
-    # Process each sub-region independently in parallel
-    results = Parallel(n_jobs=n_jobs)(delayed(slic)(sub_region, K, m, iteration) for sub_region in sub_regions)
-
-    # Merge the results from each sub-region to obtain the final superpixels
-    superpixels = Util.merge_results(results)
-
-    return results
