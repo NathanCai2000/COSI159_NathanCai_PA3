@@ -24,6 +24,10 @@ def main():
     
     img4 = SKslic(img1, segments, compactness=compactness, max_num_iter=iterations)
     
+    plt.imshow(img3)
+    #plt.imshow(img4)
+    
+    '''
     list_imgs = [img1, img2, img3, img4]
     titles = ['original', 'Normalized', 'SLIC', 'Scikit']
     
@@ -34,6 +38,6 @@ def main():
         plt.imshow(list_imgs[x])
     
     return
-
+    '''
 if __name__ == "__main__":
     main()
