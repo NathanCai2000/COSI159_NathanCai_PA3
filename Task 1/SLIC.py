@@ -28,7 +28,6 @@ def slic(image, K, m, iteration = 10):
         Superpixel Image
 
     """
-    # Step 1: Initialize cluster centers
     print('Initialize cluster centers')
     centers = []
     height = image.shape[0]
@@ -43,7 +42,6 @@ def slic(image, K, m, iteration = 10):
             centers.append(center)
     centers = np.array(centers)
     
-    # Step 2: Assign pixels to clusters
     print('Assign pixels to clusters')
     labels = np.zeros((height, width), dtype=np.int64)
     distances = np.full((height, width), np.inf)
@@ -59,7 +57,6 @@ def slic(image, K, m, iteration = 10):
                         distances[i][j] = d
                         labels[i][j] = c
 
-        # Step 3: Update cluster centers
         print('Update cluster centers')
         new_centers = np.zeros_like(centers)
         counts = np.zeros((K,))
@@ -77,15 +74,15 @@ def slic(image, K, m, iteration = 10):
                 new_centers[c] /= counts[c]
         centers = new_centers
 
-    # Step 4: Generate superpixels
     print('Generate superpixels')
     superpixels = np.zeros_like(image)
-    #print(centers[0:6])
-    tmp = 255/K
+    
+    colors = np.random.rand(K, 3)
     
     for i in range(height):
         for j in range(width):
-            superpixels[i][j] = centers[labels[i][j]][2:5] * 255        
+            #superpixels[i][j] = centers[labels[i][j]][2:5] * 255    
+            superpixels[i][j] = colors[labels[i][j]][0:3] * 255
     
     superpixels = Draw_dots(superpixels, centers[0:K], K, 3)
     superpixels = superpixels.astype(np.uint8)
